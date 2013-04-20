@@ -22,13 +22,13 @@ host needs to be a list.
 '''
 nodes = {
     'cluster_master': {
-        'host':['root@qasus-CentOS-3'],
+        'host':'root@qasus-CentOS-3',
         'platform':'',
         'deploy_dir':'/home/cchung',
     },
 
     'cluster_searchhead': {
-        'host':['eserv@sfeserv44', 'eserv@sfeserv45'],
+        'host':['eserv@sfeserv43', 'eserv@sfeserv45'],
         'platform':'Windows',
         'deploy_dir':['/home/eserv/cchung', '/home/eserv/cchung'],
         'pkg':'splunk-4.3.6-155455-x64-release.zip'
@@ -56,7 +56,10 @@ nodes = {
 # prase environments 
 env.warn_only = True
 for node in nodes.keys():
-    env.roledefs.update({node:nodes[node]['host']})
+    if type(nodes[node]['host']) == list:
+        env.roledefs.update({node:nodes[node]['host']})
+    else:
+        env.roledefs.update({node:[nodes[node]['host']]})
 if "-R" in sys.argv:
     run_roles = sys.argv[sys.argv.index("-R")+1]
 else:
