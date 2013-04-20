@@ -1,5 +1,6 @@
 
 import sys
+import yaml
 from fabric.api import env 
 
 default_roles = ['cluster_master', 'cluster_slave'] # all supported roles
@@ -65,4 +66,39 @@ if "-R" in sys.argv:
 else:
     run_roles = default_roles
 
+def host_parser(host):
+    '''
+    Parse the host arguements as dict.
+    host argeuments will overwrite the defaults, 
+    and it'll find the corresponding positions if it was defined as a list.
+    '''
+    host_args = {}
+
+    # find what's the role and where the index is.
+    for role in nodes:
+        if host in nodes[role]['host']:
+            index = nodes[role]['host'].index(host)
+            host_role = role
+
+    # get the values.
+    for key in host_arguements:
+        if key in nodes[host_role]: # if the host has the arguement, apply it.
+            if type(nodes[host_role][key]) == list: # list of values
+                host_args.update({key:nodes[host_role][key][index]})
+            elif type(nodes[host_role][key]) == str: # single value
+                host_args.update({key:nodes[host_role][key]})
+            else: # not able to handle, 
+                raise 
+        else: # if the host doesnt have the key, apply default value.
+            host_args.update({key:eval("default_"+key)})
+    return host_args
+
+
+def _path_join(platform, *args):
+    if platform.lower() == "windows" or "win" or "win32" :
+        print "\\\\".join(args)
+    else:
+        print "/".join(args)
+
+print "imported host"
 
