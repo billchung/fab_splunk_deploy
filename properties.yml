@@ -1,0 +1,12 @@
+verbose: True
+warn_only: True # fab env.warn_only 
+
+# fab outputs: 
+status: True   # default = True
+aborts: True   # default = True
+warnings: True # default = True
+running: True  # default = True
+stdout: True   # default = True
+stderr: True   # default = True
+user: True     # default = True
+debug: False   # default = False
