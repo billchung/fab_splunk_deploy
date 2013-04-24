@@ -1,6 +1,17 @@
 fab_splunk_deploy
 =================
 
+Overview
+-----------------
+
+Prerequisites
+-----------------
+
+* Python 2.7.3
+* Fab 1.3.2
+* PyYaml 3.10
+
+
 Structure:
 -----------------
 * fabfile.py: root fab file, it's necesary for fab to run without specifiying a fabfile.
