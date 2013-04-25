@@ -3,19 +3,12 @@ import yaml
 from os import system, path
 from time import ctime
 from fabric.api import local, run, put, get, cd, env, roles, parallel
-from fabric.state import output
+
 
 # prase environments 
 fab_home_path = path.join(path.dirname(path.realpath(__file__)), '..')
 hosts_yml = path.join(fab_home_path, 'hosts.yml')
-properties_yml = path.join(fab_home_path, 'properties.yml')
 hosts_arg = yaml.load(open(hosts_yml))
-properties = yaml.load(open(properties_yml))
-
-verbose = properties['verbose']
-env.warn_only = properties['warn_only']
-for key in output.keys():
-    output[key] = properties[key]
 
 for node in hosts_arg['nodes']:
     if type(node['host']) == list:
@@ -28,7 +21,7 @@ for node in hosts_arg['nodes']:
 if "-R" in sys.argv:
     run_roles = sys.argv[sys.argv.index("-R")+1]
 else:
-    run_roles = hosts_arg['default_roles']
+    run_roles = hosts_arg['run_roles']
 
 # host_arg
 # {'default_roles': ['cluster_master', 'cluster_slave'], 
@@ -67,8 +60,8 @@ def host_args_parser(host):
                 else: # not defined in role-level, apply default value
                     args.update({key:hosts_arg["default_"+key]})
         else: # host is not in this node/role
-            continue
-    if verbose: 
+            continue # not necessary, just to be clear.
+    if env.verbose: 
         print "Host args of %s:\n%s" %(host, args)
     return args
 
@@ -86,19 +79,36 @@ def cmd(exec_cmd=None, directory=''):
     if directory: # play safe: create dir if it doesnt exist.
         cmd('mkdir -p %s' %(directory))
     with cd(directory):
-        run(exec_cmd)
-        if verbose:
+        if env.verbose:
             print ' - [%s] In [%s] exec_cmd [%s]' %(ctime(), directory, exec_cmd)
+        run(exec_cmd)
+
 
 
 @parallel
 @roles(run_roles)
-def put_file(local_path, remote_path):
+def put_file(local, remote):
+    put(local, remote)
+
+
+@parallel
+@roles(run_roles)
+def get_file(remote, local):
+    local_path = path.join(local, path.basename(remote)+'_'+env.host_string)
+    get(remote, local_path)
+
+
+@parallel
+@roles(run_roles)
+def put_splunk_file(local, remote):
+    host_args = host_args_parser(env.host_string)
+    remote_path = path.join(host_args['deploy_dir'], remote)
     put(local_path, remote_path)
 
-
 @parallel
 @roles(run_roles)
-def get_file(remote_path, local_path):
-    get(remote_path, path.join(local_path, path.basename(remote_path)+
-                                           '_'+env.host_string))
+def get_splunk_file(remote, local):
+    host_args = host_args_parser(env.host_string)
+    remote_path = path.join(host_args['deploy_dir'], remote)
+    local_path = path.join(local, path.basename(remote)+'_'+env.host_string)
+    get(remote_path, local_path)

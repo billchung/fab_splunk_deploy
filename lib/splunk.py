@@ -55,9 +55,10 @@ def setup():
     setup all machines in run_roles, 
     use execute to run the setup for certain role.
     '''
-    for node_type in run_roles:
-        setup_function = 'setup_'+node_type
-        print "[%s] Setting up %s" %(ctime(), node_type)
+    for role in run_roles:
+        setup_function = 'setup_'+role
+        if env.verbose:
+            print "[%s] Setting up %s" %(ctime(), role)
         execute(setup_function) # execute will apply its role!
 
 
