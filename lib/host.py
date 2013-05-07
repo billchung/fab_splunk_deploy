@@ -6,18 +6,7 @@ from fabric.api import local, run, put, get, cd, env, roles, parallel
 
 # prase environments 
 fab_home_path = path.join(path.dirname(path.realpath(__file__)), '..')
-
-# Role is specified in sys.argv?
-if "-R" in sys.argv:
-    run_roles = sys.argv[sys.argv.index("-R")+1]
-else:
-    run_roles = hosts_arg['run_roles']
-
-# Yaml file is specified in sys.argv?
-if "-Y" in sys.argv:
-    hosts_yml = sys.argv[sys.argv.index("-Y")+1]
-else:
-    hosts_yml = path.join(fab_home_path, 'hosts.yml')
+hosts_yml = path.join(fab_home_path, 'hosts.yml')
 hosts_arg = yaml.load(open(hosts_yml))
 
 
@@ -29,6 +18,15 @@ for node in hosts_arg['nodes']:
     else:
         raise Exception("Host arg needs to be list or str! error @host: %s" 
                         %arg['host'])
+
+
+# Role is specified in sys.argv?
+if "-R" in sys.argv:
+    run_roles = sys.argv[sys.argv.index("-R")+1]
+else:
+    run_roles = []
+    for node in hosts_arg['nodes']:
+        run_roles.append(node['role'])
 
 
 # hosts_arg

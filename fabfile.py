@@ -17,6 +17,7 @@ for key in output.keys():
 try:
     from lib.cluster import *
     from lib.splunk import *
+    from lib.dist import *
 except ImportError, ex:
     print ex
 

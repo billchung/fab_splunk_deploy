@@ -11,17 +11,14 @@ from host import *
 def splunk_cmd(exec_cmd=None):
     '''
     Execute a splunk command at deploy_dir.
+    @param: exec_cmd
     '''
     host_args = host_args_parser(env.host_string)
     exec_cmd = path.join('bin', 'splunk')+' '+exec_cmd
-    #exec_cmd += " --accept-license --no-prompt --answer-yes " \
-    #            "-auth {auth}| grep -v ing".format(**host_args)
     if any(x in exec_cmd for x in ['start', 'restart']):
         exec_cmd += ' --accept-license --no-prompt --answer-yes | grep -v ing'
     else:
         exec_cmd += " -auth {auth}".format(**host_args)
-    #exec_cmd += ' -auth {auth} --accept-license --no-prompt --answer-yes ' \
-    #            '| grep -v ing'.format(**host_args)
     cmd(exec_cmd, host_args['splunk_dir'])
 
 
@@ -29,7 +26,7 @@ def splunk_cmd(exec_cmd=None):
 @roles(run_roles)
 def splunk_rest(endpoint, args=None):
     '''
-    Execute a rest call to form localhost.
+    Execute a rest call to remote form localhost.
     @param: endpoint, args
     '''
     host_args = host_args_parser(env.host_string)
@@ -46,6 +43,8 @@ def splunk_rest(endpoint, args=None):
 def deploy_splunk():
     '''
     Deploy splunk pkg, set ports, and start splunk.
+    @param: 
+    @host_args: is_backup, is_upgrade, is_send_pkg, pkg, deploy_dir, platform, 
     '''
     host_args = host_args_parser(env.host_string)
     splunk_cmd('stop') # play safe: stop existing splunk instance.
@@ -97,27 +96,6 @@ def deploy_splunk():
 
     splunk_cmd('start')
 
-    if host_args['is_with_data']:
-        put(host_args['data_file'], host_args['deploy_dir'])
-        remote_data = path.join(host_args['deploy_dir'], 
-                                path.basename(host_args['data_file']))
-        splunk_cmd('add monitor %s' %remote_data)
-
-
-#    splunk_cmd('set splunkd-port {splunkd_port} -auth {auth}'.format(**host_args))
-#    splunk_cmd('set web-port {splunkweb_port} -auth {auth}'.format(**host_args))
-
-# Dont set roles here, let the execute funciton to handle which role to run.
-def setup():
-    '''
-    Setup all machines in run_roles.
-    Use execute to run the setup for certain role.
-    '''
-    for role in run_roles:
-        print "[%s] Setting up %s" %(ctime(), role)
-        setup_function = 'setup_'+role
-        execute(setup_function) # execute will apply its role!
-
 
 @parallel
 @roles(run_roles)
@@ -125,6 +103,7 @@ def put_splunk_file(local, remote):
     '''
     Put file (dir) into remote splunk instance (under $deploy_dir/splunk)
     @params: local path, remote path
+    @host_args:
     '''
     host_args = host_args_parser(env.host_string)
     remote_path = path.join(host_args['deploy_dir'], 'splunk', remote)
@@ -138,33 +117,23 @@ def get_splunk_file(remote, local):
     Get file (dir) from remote splunk instance (under $deploy_dir/splunk).
     The file name will append the hostname to its end, to aviod conflicts. 
     @params: remote path, local path
+    @host_args:
     '''
     host_args = host_args_parser(env.host_string)
     remote_path = path.join(host_args['deploy_dir'], 'splunk', remote)
     get_file(remote_path, local)
 
 
-@parallel
-@roles(run_roles)
-def setup_searchhead():
-    pass
-
-
-@parallel
-@roles(run_roles)
-def setup_indexer():
-    pass
-
-
-@parallel
-@roles(run_roles)
-def setup_uforwarder():
-    pass
-
-
-@parallel
-@roles(run_roles)
-def setup_forwarder():
-    pass
-
+# Dont set roles here, let the execute funciton to handle which role to run.
+def setup():
+    '''
+    Setup all nodes.
+    Use execute to run the setup for certain role.
+    @param:
+    @host_args:
+    '''
+    for role in run_roles:
+        print "[%s] Setting up %s" %(ctime(), role)
+        setup_function = 'setup_'+role
+        execute(setup_function) # execute will apply its role!
 

@@ -12,6 +12,8 @@ from splunk import *
 def setup_cluster_master():
     '''
     Setup cluster master node.
+    @param:
+    @host_args: replication_factor, search_factor, auth
     '''
     host_args = host_args_parser(env.host_string)
     deploy_splunk()
@@ -28,6 +30,8 @@ def setup_cluster_master():
 def setup_cluster_searchhead():
     '''
     Setup cluster searchhead node.
+    @param:
+    @host_args: master_uri, auth
     '''
     host_args = host_args_parser(env.host_string)
     deploy_splunk()
@@ -43,6 +47,8 @@ def setup_cluster_searchhead():
 def setup_cluster_slave():
     '''
     Setup cluster slave (peer) node.
+    @param:
+    @host_args: master_uri, replication_port, auth, is_with_data, data_file, deploy_dir
     '''
     host_args = host_args_parser(env.host_string)
     deploy_splunk()
@@ -52,5 +58,13 @@ def setup_cluster_slave():
                "-auth {auth}".format(**host_args)
     splunk_cmd(edit_cmd)
     splunk_cmd('restart')
+
+    if host_args['is_with_data']:
+        put(host_args['data_file'], host_args['deploy_dir'])
+        remote_data = path.join(host_args['deploy_dir'], 
+                                path.basename(host_args['data_file']))
+        splunk_cmd('add monitor %s' %remote_data)
+
+
 
 
