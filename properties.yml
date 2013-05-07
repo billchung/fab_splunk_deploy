@@ -5,7 +5,7 @@ warn_only: True # fab env.warn_only
 status: True   # default = True
 aborts: True   # default = True
 warnings: True # default = True
-running: True  # default = True
+running: False  # default = True
 stdout: True   # default = True
 stderr: True   # default = True
 user: True     # default = True
